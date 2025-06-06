@@ -3,255 +3,283 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>JEE Question Tracker</title>
-
-  <!-- XLSX library for Excel export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 
   <style>
-    /* Reset & base */
-    * {
+    /* -------- base -------- */
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
       background: #f8f7fb;
-      margin: 0;
-      padding: 0;
       color: #3a2c56;
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px 10px 40px;
+      min-height: 100vh
     }
 
     header {
       text-align: center;
-      margin-bottom: 1rem;
+      margin-bottom: 1rem
     }
 
     header h1 {
-      margin: 0;
-      font-size: 2.8rem;
+      font-size: 2.6rem;
       font-weight: 900;
       color: #4a3c80;
-      letter-spacing: 1.5px;
+      letter-spacing: 1.4px
     }
 
-    header p.owner {
-      margin-top: 6px;
+    header .owner {
+      margin-top: 5px;
       font-style: italic;
-      color: #6b5ca5;
       font-weight: 600;
-      font-size: 1rem;
-      user-select: none;
+      color: #6b5ca5
     }
 
-    .warning {
+    header .warning {
+      margin-top: 10px;
       background: #f0d9e8;
       color: #721c24;
       font-weight: 600;
       padding: 8px 12px;
       border-radius: 6px;
-      width: 100%;
-      max-width: 800px;
-      box-shadow: 0 0 5px rgba(114, 28, 36, 0.3);
-      margin-bottom: 20px;
+      box-shadow: 0 0 5px rgba(114, 28, 36, .3)
     }
 
-    .container {
-      width: 100%;
-      max-width: 820px;
+    .card {
       background: #fff;
+      width: 100%;
+      max-width: 840px;
       border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(74, 60, 128, 0.15);
-      padding: 20px 25px 40px;
+      box-shadow: 0 6px 18px rgba(74, 60, 128, .15);
+      padding: 20px 25px 36px
     }
 
-    /* Tabs */
-    .subject-tabs {
+    /* -------- tabs -------- */
+    .tabs {
       display: flex;
-      justify-content: center;
       gap: 14px;
+      justify-content: center;
       margin-bottom: 25px;
+      flex-wrap: wrap
     }
 
-    .subject-tab {
+    .tab-btn {
       background: #6b5ca5;
       border: none;
-      color: white;
+      color: #fff;
       font-weight: 700;
       padding: 10px 24px;
       border-radius: 30px;
       cursor: pointer;
-      font-size: 1.1rem;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 3px 6px rgba(107, 92, 165, 0.4);
       user-select: none;
+      font-size: 1.05rem;
+      box-shadow: 0 3px 6px rgba(107, 92, 165, .4);
+      transition: .3s
     }
 
-    .subject-tab[aria-selected="true"],
-    .subject-tab:hover {
+    .tab-btn[aria-selected="true"],
+    .tab-btn:hover {
       background: #4a3c80;
-      box-shadow: 0 4px 15px rgba(74, 60, 128, 0.6);
+      box-shadow: 0 4px 15px rgba(74, 60, 128, .6)
     }
 
-    /* Form */
+    /* -------- form -------- */
     form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 18px 20px;
-      margin-bottom: 25px;
+      margin-bottom: 26px
     }
 
     label {
-      display: block;
       font-weight: 600;
-      margin-bottom: 6px;
       color: #4a3c80;
+      margin-bottom: 4px;
+      display: block
     }
 
-    input[type="text"],
-    input[type="number"],
     select,
+    input,
     textarea {
       width: 100%;
       padding: 10px 14px;
-      border: 2px solid #9a89c9;
-      border-radius: 8px;
       font-size: 1rem;
-      transition: border-color 0.3s ease;
-      font-family: inherit;
+      border-radius: 8px;
+      border: 2px solid #9a89c9;
+      background: #faf9ff;
       color: #3a2c56;
-      resize: vertical;
-      min-height: 40px;
+      transition: .25s
     }
 
-    input[type="text"]:focus,
-    input[type="number"]:focus,
     select:focus,
+    input:focus,
     textarea:focus {
       border-color: #4a3c80;
       outline: none;
-      box-shadow: 0 0 8px rgba(74, 60, 128, 0.4);
+      box-shadow: 0 0 8px rgba(74, 60, 128, .4)
     }
 
     textarea {
       min-height: 80px;
+      resize: vertical
     }
 
-    /* Buttons */
+    /* buttons */
     .btn {
       background: #6b5ca5;
-      color: white;
+      color: #fff;
       border: none;
       padding: 14px 28px;
-      font-size: 1.1rem;
-      font-weight: 700;
       border-radius: 30px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 6px 15px rgba(107, 92, 165, 0.5);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
-      margin-top: 10px;
+      box-shadow: 0 6px 15px rgba(107, 92, 165, .5);
+      transition: .3s
     }
 
     .btn:hover,
     .btn:focus {
       background: #4a3c80;
-      box-shadow: 0 8px 20px rgba(74, 60, 128, 0.7);
-      outline: none;
+      box-shadow: 0 8px 20px rgba(74, 60, 128, .7)
     }
 
     .btn+.btn {
-      margin-left: 12px;
+      margin-left: 12px
     }
 
-    /* Saved questions area */
-    h2.saved-heading {
-      color: #4a3c80;
-      font-weight: 800;
-      margin-top: 30px;
-      margin-bottom: 14px;
-      border-bottom: 3px solid #6b5ca5;
-      padding-bottom: 6px;
+    /* -------- saved list -------- */
+    .sections {
+      margin-top: 28px
     }
 
-    .saved-subject-section {
-      margin-bottom: 28px;
+    .section {
+      display: none
     }
 
-    .saved-subject-section h3 {
+    .section.active {
+      display: block
+    }
+
+    .section h3 {
       color: #5a4e8c;
       font-weight: 700;
       margin-bottom: 10px;
-      user-select: none;
+      border-bottom: 3px solid #6b5ca5;
+      padding-bottom: 4px
     }
 
-    .saved-questions-list {
-      max-height: 200px;
+    .list {
+      max-height: 220px;
       overflow-y: auto;
+      background: #f6f5fa;
       border: 1.8px solid #9a89c9;
       border-radius: 10px;
-      background: #f6f5fa;
       padding: 10px 12px;
-      font-size: 0.95rem;
-      color: #3a2c56;
-      box-shadow: inset 0 1px 4px rgba(74, 60, 128, 0.1);
+      font-size: .95rem;
+      box-shadow: inset 0 1px 4px rgba(74, 60, 128, .1)
     }
 
-    .saved-question {
-      background: white;
+    .item {
+      background: #fff;
       margin: 6px 0;
       padding: 10px 14px;
       border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(74, 60, 128, 0.1);
+      box-shadow: 0 2px 5px rgba(74, 60, 128, .1);
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      color: #4a3c80;
-      user-select: text;
+      align-items: center
     }
 
-    .saved-question button.delete-btn {
+    .item-info {
+      max-width: 78%;
+      word-wrap: break-word;
+      color: #4a3c80;
+      font-weight: 600;
+      font-size: .9rem;
+      line-height: 1.3
+    }
+
+    .delete-btn {
       background: #d65a6e;
       border: none;
-      color: white;
-      font-weight: 700;
+      color: #fff;
       border-radius: 20px;
       padding: 6px 14px;
+      font-size: .8rem;
+      font-weight: 700;
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: background-color 0.3s ease;
-      user-select: none;
+      transition: .25s
     }
 
-    .saved-question button.delete-btn:hover,
-    .saved-question button.delete-btn:focus {
-      background: #a93f4c;
-      outline: none;
+    .delete-btn:hover {
+      background: #a93f4c
     }
 
-    /* Responsive */
-    @media (max-width: 600px) {
+    /* -------- dialog -------- */
+    #dlg-back {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000
+    }
+
+    #dlg {
+      background: #fff;
+      border-radius: 10px;
+      padding: 22px 26px;
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .25)
+    }
+
+    #dlg-msg {
+      margin-bottom: 18px;
+      font-weight: 600;
+      color: #3a2c56
+    }
+
+    #dlg-ok {
+      background: #6b5ca5;
+      color: #fff;
+      border: none;
+      border-radius: 26px;
+      padding: 10px 28px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(107, 92, 165, .6);
+      transition: .3s
+    }
+
+    #dlg-ok:hover {
+      background: #4a3c80
+    }
+
+    @media(max-width:600px) {
       form {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr
       }
 
       .btn+.btn {
         margin-left: 0;
         margin-top: 10px;
-        display: block;
-        width: 100%;
-      }
-
-      .subject-tabs {
-        flex-wrap: wrap;
-        gap: 10px;
+        width: 100%
       }
     }
   </style>
@@ -261,85 +289,79 @@
 
   <header>
     <h1>JEE Question Tracker</h1>
-    <p class="owner">Owner: PWian Gourav</p>
-    <p class="warning" role="alert">
-      ⚠️ If you clear your browser data/cache, all saved questions will be lost. Please back up first!
-    </p>
+    <p class="owner">Owner&nbsp;–&nbsp;PWian Gourav</p>
+    <p class="warning">⚠️ Clearing your browser data/cache deletes everything saved here – remember to back up!</p>
   </header>
 
-  <div class="container">
-    <!-- Subject Tabs -->
-    <div class="subject-tabs" role="tablist" aria-label="Select subject">
-      <button role="tab" class="subject-tab" aria-selected="true" tabindex="0" data-subject="Physics">Physics</button>
-      <button role="tab" class="subject-tab" aria-selected="false" tabindex="-1"
-        data-subject="Chemistry">Chemistry</button>
-      <button role="tab" class="subject-tab" aria-selected="false" tabindex="-1" data-subject="Maths">Maths</button>
+  <div class="card">
+    <!-- tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn" aria-selected="true" data-subject="Physics" tabindex="0">Physics</button>
+      <button class="tab-btn" aria-selected="false" data-subject="Chemistry" tabindex="-1">Chemistry</button>
+      <button class="tab-btn" aria-selected="false" data-subject="Mathematics" tabindex="-1">Maths</button>
     </div>
 
-    <!-- Input Form -->
-    <form id="questionForm" aria-label="Add new question">
+    <!-- form -->
+    <form id="qForm">
       <div>
-        <label for="classSelect">Class</label>
-        <select id="classSelect" name="classSelect" required>
+        <label for="cls">Class</label>
+        <select id="cls" required>
           <option value="11">11th</option>
           <option value="12">12th</option>
         </select>
       </div>
-
       <div>
-        <label for="chapterSelect">Chapter</label>
-        <select id="chapterSelect" name="chapterSelect" required>
-          <!-- Options populated by JS -->
-        </select>
+        <label for="chapter">Chapter</label>
+        <select id="chapter" required></select>
       </div>
-
       <div>
-        <label for="lectureInput">Lecture No.</label>
-        <input type="number" id="lectureInput" name="lectureInput" min="1" placeholder="e.g. 5" required />
+        <label for="lec">Lecture&nbsp;No.</label>
+        <input id="lec" type="number" min="1" required placeholder="e.g. 5">
       </div>
-
       <div>
-        <label for="questionInput">Question No.</label>
-        <input type="number" id="questionInput" name="questionInput" min="1" placeholder="e.g. 3" required />
+        <label for="slide">Slide&nbsp;No.</label>
+        <input id="slide" type="number" min="1" placeholder="e.g. 12">
       </div>
-
-      <div style="grid-column: 1 / -1;">
-        <label for="addressInput">Full Question Address / Note</label>
-        <textarea id="addressInput" name="addressInput" placeholder="Write complete address or any notes..."
-          required></textarea>
+      <div>
+        <label for="qno">Question&nbsp;No.</label>
+        <input id="qno" type="number" min="1" required placeholder="e.g. 3">
       </div>
-
-      <div style="grid-column: 1 / -1; display: flex; gap: 15px; flex-wrap: wrap;">
-        <button type="submit" class="btn" aria-label="Save question">Save Question</button>
-        <button type="button" class="btn" id="downloadBtn" aria-label="Download saved questions as Excel file">Download
-          Excel</button>
+      <div style="grid-column:1/-1">
+        <label for="addr">Full Question Address / Note</label>
+        <textarea id="addr" required placeholder="Complete reference or note..."></textarea>
       </div>
+      <div style="grid-column:1/2"><button class="btn" type="submit">Save Question</button></div>
+      <div style="grid-column:2/3"><button class="btn" type="button" id="export">Download Excel</button></div>
     </form>
 
-    <!-- Saved questions by subject -->
-    <h2 class="saved-heading">Saved Questions</h2>
-
-    <section class="saved-subject-section" aria-label="Saved Physics questions">
-      <h3>Physics</h3>
-      <div id="savedPhysics" class="saved-questions-list" tabindex="0" aria-live="polite" aria-relevant="additions">
+    <!-- saved lists -->
+    <div class="sections">
+      <div class="section active" data-subject="Physics">
+        <h3>Physics</h3>
+        <div id="listPhysics" class="list"></div>
       </div>
-    </section>
-
-    <section class="saved-subject-section" aria-label="Saved Chemistry questions">
-      <h3>Chemistry</h3>
-      <div id="savedChemistry" class="saved-questions-list" tabindex="0" aria-live="polite" aria-relevant="additions">
+      <div class="section" data-subject="Chemistry">
+        <h3>Chemistry</h3>
+        <div id="listChemistry" class="list"></div>
       </div>
-    </section>
+      <div class="section" data-subject="Mathematics">
+        <h3>Mathematics</h3>
+        <div id="listMathematics" class="list"></div>
+      </div>
+    </div>
+  </div>
 
-    <section class="saved-subject-section" aria-label="Saved Maths questions">
-      <h3>Maths</h3>
-      <div id="savedMaths" class="saved-questions-list" tabindex="0" aria-live="polite" aria-relevant="additions"></div>
-    </section>
+  <!-- dialog -->
+  <div id="dlg-back" role="dialog" aria-modal="true">
+    <div id="dlg">
+      <div id="dlg-msg"></div>
+      <button id="dlg-ok">OK</button>
+    </div>
   </div>
 
   <script>
-    // Chapters data for demo - update as needed for your JEE syllabus
-    const chapters = {
+    /* ---------- chapter data (short demo lists) ---------- */
+    const CHAPTERS = {
       Physics: {
         "11": [
           "Unit and Dimensions",
@@ -406,7 +428,7 @@
           "Chemistry in Everyday Life"
         ]
       },
-      Maths: {
+      Mathematics: {
         "11": [
           "Basics Mathematics",
           "Sets",
@@ -441,206 +463,108 @@
       }
     };
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const subjectTabs = document.querySelectorAll(".subject-tab");
-      const classSelect = document.getElementById("classSelect");
-      const chapterSelect = document.getElementById("chapterSelect");
-      const lectureInput = document.getElementById("lectureInput");
-      const questionInput = document.getElementById("questionInput");
-      const addressInput = document.getElementById("addressInput");
-      const downloadBtn = document.getElementById("downloadBtn");
-      const savedAreas = {
-        Physics: document.getElementById("savedPhysics"),
-        Chemistry: document.getElementById("savedChemistry"),
-        Maths: document.getElementById("savedMaths"),
-      };
 
-      let currentSubject = "Physics";
+    /* ---------- helpers ---------- */
+    const dlgBack = document.getElementById('dlg-back'),
+      dlgMsg = document.getElementById('dlg-msg'),
+      dlgOk = document.getElementById('dlg-ok');
+    function dialog(msg) {
+      dlgMsg.textContent = msg; dlgBack.style.display = 'flex';
+      return new Promise(r => {dlgOk.onclick = () => {dlgBack.style.display = 'none'; r();};});
+    }
 
-      // Saved questions separated by subject
-      let savedQuestions = {
-        Physics: [],
-        Chemistry: [],
-        Maths: []
-      };
+    /* ---------- state ---------- */
+    let current = "Physics";
+    let store = JSON.parse(localStorage.getItem('jeeData') ||
+      '{"Physics":[],"Chemistry":[],"Mathematics":[]}');
 
-      // Populate chapter dropdown
-      function populateChapters() {
-        const cls = classSelect.value;
-        const chaps = chapters[currentSubject][cls] || [];
-        chapterSelect.innerHTML = "";
-        chaps.forEach(ch => {
-          const opt = document.createElement("option");
-          opt.value = ch;
-          opt.textContent = ch;
-          chapterSelect.appendChild(opt);
-        });
-      }
+    /* ---------- DOM refs ---------- */
+    const tabs = [...document.querySelectorAll('.tab-btn')],
+      sections = [...document.querySelectorAll('.section')],
+      lists = {
+        Physics: document.getElementById('listPhysics'),
+        Chemistry: document.getElementById('listChemistry'),
+        Mathematics: document.getElementById('listMathematics')
+      },
+      cls = document.getElementById('cls'),
+      chapterSel = document.getElementById('chapter'),
+      lec = document.getElementById('lec'),
+      slide = document.getElementById('slide'),
+      qno = document.getElementById('qno'),
+      addr = document.getElementById('addr'),
+      form = document.getElementById('qForm'),
+      exportBtn = document.getElementById('export');
 
-      // Save questions in localStorage separated by subject
-      function saveQuestion(e) {
-        e.preventDefault();
+    /* ---------- populate chapters ---------- */
+    function loadChapters() {
+      chapterSel.innerHTML = '';
+      (CHAPTERS[current][cls.value] || []).forEach(ch => {
+        const o = document.createElement('option'); o.value = o.textContent = ch; chapterSel.appendChild(o);
+      });
+    }
 
-        const lectureNo = lectureInput.value.trim();
-        const questionNo = questionInput.value.trim();
-        const chapter = chapterSelect.value.trim();
-        const address = addressInput.value.trim();
-
-        if (!lectureNo || !questionNo || !chapter || !address) {
-          alert("Please fill all fields before saving.");
-          return;
-        }
-
-        const questionObj = {
-          class: classSelect.value,
-          chapter,
-          lecture: lectureNo,
-          question: questionNo,
-          address,
-          timestamp: new Date().toISOString()
-        };
-
-        savedQuestions[currentSubject].push(questionObj);
-        localStorage.setItem("jeeQuestionsBySubject", JSON.stringify(savedQuestions));
-
-        // Clear inputs except class & chapter for convenience
-        lectureInput.value = "";
-        questionInput.value = "";
-        addressInput.value = "";
-
-        renderSavedQuestions();
-
-        alert(`Saved question under ${currentSubject}`);
-      }
-
-      // Load questions from localStorage
-      function loadFromStorage() {
-        const data = localStorage.getItem("jeeQuestionsBySubject");
-        if (data) {
-          savedQuestions = JSON.parse(data);
-        }
-      }
-
-      // Render saved questions in their respective sections
-      function renderSavedQuestions() {
-        for (const subject in savedAreas) {
-          const container = savedAreas[subject];
-          container.innerHTML = "";
-          const questions = savedQuestions[subject];
-          if (!questions || questions.length === 0) {
-            container.innerHTML = "<p><em>No questions saved yet.</em></p>";
-            continue;
-          }
-
-          questions.forEach((q, idx) => {
-            const div = document.createElement("div");
-            div.className = "saved-question";
-
-            div.innerHTML = `
-            <div>
-              <strong>Class ${q.class}</strong> | <em>${q.chapter}</em><br>
-              Lecture ${q.lecture} | Question ${q.question}<br>
-              <small>${q.address}</small>
-            </div>
-            <button class="delete-btn" aria-label="Delete question ${idx + 1} from ${subject}">Delete</button>
-          `;
-
-            // Delete button handler
-            div.querySelector("button.delete-btn").addEventListener("click", () => {
-              savedQuestions[subject].splice(idx, 1);
-              localStorage.setItem("jeeQuestionsBySubject", JSON.stringify(savedQuestions));
-              renderSavedQuestions();
-            });
-
-            container.appendChild(div);
-          });
-        }
-      }
-
-      // Switch tab (subject)
-      function switchTab(e) {
-        const clicked = e.target;
-        if (!clicked.classList.contains("subject-tab")) return;
-
-        subjectTabs.forEach(tab => {
-          tab.setAttribute("aria-selected", "false");
-          tab.setAttribute("tabindex", "-1");
-        });
-
-        clicked.setAttribute("aria-selected", "true");
-        clicked.setAttribute("tabindex", "0");
-        clicked.focus();
-
-        currentSubject = clicked.dataset.subject;
-        populateChapters();
-      }
-
-      // Export to Excel with separate sheets per subject
-      function exportToExcel() {
-        const wb = XLSX.utils.book_new();
-
-        for (const subject in savedQuestions) {
-          const questions = savedQuestions[subject];
-          if (questions.length === 0) continue;
-
-          // Map questions to worksheet data array with headers
-          const wsData = [
-            ["Class", "Chapter", "Lecture No.", "Question No.", "Full Question Address/Note", "Saved On"]
-          ];
-
-          questions.forEach(q => {
-            wsData.push([
-              q.class,
-              q.chapter,
-              q.lecture,
-              q.question,
-              q.address,
-              new Date(q.timestamp).toLocaleString()
-            ]);
-          });
-
-          const ws = XLSX.utils.aoa_to_sheet(wsData);
-          XLSX.utils.book_append_sheet(wb, ws, subject);
-        }
-
-        if (wb.SheetNames.length === 0) {
-          alert("No questions saved to export.");
-          return;
-        }
-
-        XLSX.writeFile(wb, "JEE_Questions_Tracker.xlsx");
-      }
-
-      // Event listeners
-      subjectTabs.forEach(tab => {
-        tab.addEventListener("click", switchTab);
-        tab.addEventListener("keydown", e => {
-          // Support keyboard navigation (left/right arrows)
-          let index = Array.from(subjectTabs).indexOf(document.activeElement);
-          if (e.key === "ArrowRight") {
-            index = (index + 1) % subjectTabs.length;
-            subjectTabs[index].focus();
-          } else if (e.key === "ArrowLeft") {
-            index = (index - 1 + subjectTabs.length) % subjectTabs.length;
-            subjectTabs[index].focus();
-          } else if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            subjectTabs[index].click();
-          }
+    /* ---------- render lists ---------- */
+    function render() {
+      Object.keys(lists).forEach(sub => {
+        const area = lists[sub]; area.innerHTML = '';
+        if (!store[sub].length) {area.innerHTML = '<em>No questions saved.</em>'; return;}
+        store[sub].forEach((q, i) => {
+          const div = document.createElement('div'); div.className = 'item';
+          div.innerHTML = `<div class='item-info'><strong>Class ${q.class}</strong> | ${q.chapter}<br>
+        Lec ${q.lecture} | Slide ${q.slide} | Q${q.question}<br>${q.address}</div>
+        <button class='delete-btn'>Del</button>`;
+          div.querySelector('button').onclick = () => {
+            store[sub].splice(i, 1);
+            localStorage.setItem('jeeData', JSON.stringify(store)); render();
+          };
+          area.appendChild(div);
         });
       });
+    }
 
-      classSelect.addEventListener("change", populateChapters);
-      document.getElementById("questionForm").addEventListener("submit", saveQuestion);
-      downloadBtn.addEventListener("click", exportToExcel);
+    /* ---------- switch tab ---------- */
+    function switchTab(sub) {
+      current = sub;
+      tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.subject === sub));
+      sections.forEach(s => s.classList.toggle('active', s.dataset.subject === sub));
+      loadChapters();
+    }
 
-      // Init
-      loadFromStorage();
-      populateChapters();
-      renderSavedQuestions();
+    /* ---------- save ---------- */
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!lec.value || !qno.value || !addr.value) {await dialog('Lecture No., Question No. and Address are required.'); return;}
+      store[current].push({
+        class: cls.value, chapter: chapterSel.value, lecture: lec.value, slide: slide.value || '-',
+        question: qno.value, address: addr.value.trim(), timestamp: Date.now()
+      });
+      localStorage.setItem('jeeData', JSON.stringify(store));
+      lec.value = slide.value = qno.value = addr.value = '';
+      render(); await dialog('Question saved under ' + current + '.');
     });
-  </script>
 
+    /* ---------- export ---------- */
+    exportBtn.onclick = async () => {
+      const wb = XLSX.utils.book_new(); let has = false;
+      Object.keys(store).forEach(sub => {
+        if (!store[sub].length) return;
+        has = true;
+        const rows = [["Class", "Chapter", "Lecture", "Slide", "Question", "Address", "Saved"]];
+        store[sub].forEach(q => rows.push([q.class, q.chapter, q.lecture, q.slide, q.question, q.address,
+        new Date(q.timestamp).toLocaleString()]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sub);
+      });
+      if (!has) {await dialog('No data to export.'); return;}
+      XLSX.writeFile(wb, 'JEE_Questions.xlsx');
+    };
+
+    /* ---------- tab listeners ---------- */
+    tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.subject)));
+    cls.onchange = loadChapters;
+
+    /* ---------- init ---------- */
+    loadChapters(); render();
+  </script>
 </body>
 
 </html>
