@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JEE Question Tracker</title>
+
+  <!-- XLSX library for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f7fb;
+      margin: 0;
+      padding: 0;
+      color: #3a2c56;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px 40px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: #4a3c80;
+      letter-spacing: 1.5px;
+    }
+
+    header p.owner {
+      margin-top: 6px;
+      font-style: italic;
+      color: #6b5ca5;
+      font-weight: 600;
+      font-size: 1rem;
+      user-select: none;
+    }
+
+    .warning {
+      background: #f0d9e8;
+      color: #721c24;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 0 5px rgba(114, 28, 36, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 820px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(74, 60, 128, 0.15);
+      padding: 20px 25px 40px;
+    }
+
+    /* Tabs */
+    .subject-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 25px;
+    }
+
+    .subject-tab {
+      background: #6b5ca5;
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 10px 24px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 3px 6px rgba(107, 92, 165, 0.4);
+      user-select: none;
+    }
+
+    .subject-tab[aria-selected="true"],
+    .subject-tab:hover {
+      background: #4a3c80;
+      box-shadow: 0 4px 15px rgba(74, 60, 128, 0.6);
+    }
+
+    /* Form */
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px 20px;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #4a3c80;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #9a89c9;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      font-family: inherit;
+      color: #3a2c56;
+      resize: vertical;
+      min-height: 40px;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #4a3c80;
+      outline: none;
+      box-shadow: 0 0 8px rgba(74, 60, 128, 0.4);
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    /* Buttons */
+    .btn {
+      background: #6b5ca5;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(107, 92, 165, 0.5);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      margin-top: 10px;
+    }
+
+    .btn:hover,
+    .btn:focus {
+      background: #4a3c80;
+      box-shadow: 0 8px 20px rgba(74, 60, 128, 0.7);
+      outline: none;
+    }
+
+    .btn+.btn {
+      margin-left: 12px;
+    }
+
+    /* Saved questions area */
+    h2.saved-heading {
+      color: #4a3c80;
+      font-weight: 800;
+      margin-top: 30px;
+      margin-bottom: 14px;
+      border-bottom: 3px solid #6b5ca5;
+      padding-bottom: 6px;
+    }
+
+    .saved-subject-section {
+      margin-bottom: 28px;
+    }
+
+    .saved-subject-section h3 {
+      color: #5a4e8c;
+      font-weight: 700;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+
+    .saved-questions-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1.8px solid #9a89c9;
+      border-radius: 10px;
+      background: #f6f5fa;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: #3a2c56;
+      box-shadow: inset 0 1px 4px rgba(74, 60, 128, 0.1);
+    }
+
+    .saved-question {
+      background: white;
+      margin: 6px 0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(74, 60, 128, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: #4a3c80;
+      user-select: text;
+    }
+
+    .saved-question button.delete-btn {
+      background: #d65a6e;
+      border: none;
+      color: white;
+      font-weight: 700;
+      border-radius: 20px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .saved-question button.delete-btn:hover,
+    .saved-question button.delete-btn:focus {
+      background: #a93f4c;
+      outline: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      form {
+        grid-template-columns: 1fr !important;
+      }
+
+      .btn+.btn {
+        margin-left: 0;
+        margin-top: 10px;
+        display: block;
+        width: 100%;
+      }
+
+      .subject-tabs {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>JEE Question Tracker</h1>
+    <p class="owner">Owner: PWian Gourav</p>
+    <p class="warning" role="alert">
+      ⚠️ If you clear your browser data/cache, all saved questions will be lost. Please back up first!
+    </p>
+  </header>
+
+  <div class="container">
+    <!-- Subject Tabs -->
+    <div class="subject-tabs" role="tablist" aria-label="Select subject">
+      <button role="tab" class="subject-tab" aria-selected="true" tabindex="0" data-subject="Physics">Physics</button>
+      <button role="tab" class="subject-tab" aria-selected="false" tabindex="-1"
+        data-subject="Chemistry">Chemistry</button>
+      <button role="tab" class="subject-tab" aria-selected="false" tabindex="-1" data-subject="Maths">Maths</button>
+    </div>
+
+    <!-- Input Form -->
+    <form id="questionForm" aria-label="Add new question">
+      <div>
+        <label for="classSelect">Class</label>
+        <select id="classSelect" name="classSelect" required>
+          <option value="11">11th</option>
+          <option value="12">12th</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="chapterSelect">Chapter</label>
+        <select id="chapterSelect" name="chapterSelect" required>
+          <!-- Options populated by JS -->
+        </select>
+      </div>
+
+      <div>
+        <label for="lectureInput">Lecture No.</label>
+        <input type="number" id="lectureInput" name="lectureInput" min="1" placeholder="e.g. 5" required />
+      </div>
+
+      <div>
+        <label for="questionInput">Question No.</label>
+        <input type="number" id="questionInput" name="questionInput" min="1" placeholder="e.g. 3" required />
+      </div>
+
+      <div style="grid-column: 1 / -1;">
+        <label for="addressInput">Full Question Address / Note</label>
+        <textarea id="addressInput" name="addressInput" placeholder="Write complete address or any notes..."
+          required></textarea>
+      </div>
+
+      <div style="grid-column: 1 / -1; display: flex; gap: 15px; flex-wrap: wrap;">
+        <button type="submit" class="btn" aria-label="Save question">Save Question</button>
+        <button type="button" class="btn" id="downloadBtn" aria-label="Download saved questions as Excel file">Download
+          Excel</button>
+      </div>
+    </form>
+
+    <!-- Saved questions by subject -->
+    <h2 class="saved-heading">Saved Questions</h2>
+
+    <section class="saved-subject-section" aria-label="Saved Physics questions">
+      <h3>Physics</h3>
+      <div id="savedPhysics" class="saved-questions-list" tabindex="0" aria-live="polite" aria-relevant="additions">
+      </div>
+    </section>
+
+    <section class="saved-subject-section" aria-label="Saved Chemistry questions">
+      <h3>Chemistry</h3>
+      <div id="savedChemistry" class="saved-questions-list" tabindex="0" aria-live="polite" aria-relevant="additions">
+      </div>
+    </section>
+
+    <section class="saved-subject-section" aria-label="Saved Maths questions">
+      <h3>Maths</h3>
+      <div id="savedMaths" class="saved-questions-list" tabindex="0" aria-live="polite" aria-relevant="additions"></div>
+    </section>
+  </div>
+
+  <script>
+    // Chapters data for demo - update as needed for your JEE syllabus
+    const chapters = {
+      Physics: {
+        "11": [
+          "Physical world and Measurement",
+          "Kinematics",
+          "Laws of Motion",
+          "Work, Energy and Power",
+          "Motion of System of Particles and Rigid Body",
+          "Gravitation",
+          "Properties of Bulk Matter",
+          "Thermodynamics",
+          "Behaviour of Perfect Gas and Kinetic Theory",
+          "Oscillations and Waves"
+        ],
+        "12": [
+          "Electrostatics",
+          "Current Electricity",
+          "Magnetic Effects of Current and Magnetism",
+          "Electromagnetic Induction and Alternating Currents",
+          "Electromagnetic Waves",
+          "Optics",
+          "Dual Nature of Matter and Radiation",
+          "Atoms and Nuclei",
+          "Electronic Devices"
+        ]
+      },
+      Chemistry: {
+        "11": [
+          "Some Basic Concepts of Chemistry",
+          "Structure of Atom",
+          "Classification of Elements and Periodicity in Properties",
+          "Chemical Bonding and Molecular Structure",
+          "States of Matter: Gases and Liquids",
+          "Thermodynamics",
+          "Equilibrium",
+          "Redox Reactions",
+          "The Hydrogen",
+          "The Alkali Metals",
+          "The Alkaline Earth Metals",
+          "The Boron Family",
+          "The Carbon Family",
+          "The Nitrogen Family",
+          "The Oxygen Family",
+          "The Halogens",
+          "The Noble Gases",
+          "The Environmental Chemistry"
+        ],
+        "12": [
+          "Solid State",
+          "Solutions",
+          "Electrochemistry",
+          "Chemical Kinetics",
+          "Surface Chemistry",
+          "The General Principles and Processes of Isolation of Elements",
+          "The p-Block Elements",
+          "The d- and f-Block Elements",
+          "The Coordination Compounds",
+          "Haloalkanes and Haloarenes",
+          "Alcohols, Phenols and Ethers",
+          "The Aldehydes, Ketones and Carboxylic Acids",
+          "Organic Compounds Containing Nitrogen",
+          "Biomolecules",
+          "Polymers",
+          "Chemistry in Everyday Life"
+        ]
+      },
+      Maths: {
+        "11": [
+          "Sets",
+          "Relations and Functions",
+          "Trigonometric Functions",
+          "Principle of Mathematical Induction",
+          "Complex Numbers and Quadratic Equations",
+          "Linear Inequalities",
+          "Permutations and Combinations",
+          "Binomial Theorem",
+          "Sequences and Series",
+          "Straight Lines",
+          "Conic Sections",
+          "Introduction to Three-dimensional Geometry",
+          "Limits and Derivatives",
+          "Mathematical Reasoning",
+          "Statistics",
+          "Probability"
+        ],
+        "12": [
+          "Relations and Functions",
+          "Inverse Trigonometric Functions",
+          "Matrices and Determinants",
+          "Differential Calculus",
+          "Integral Calculus",
+          "Differential Equations",
+          "Vector Algebra",
+          "Three-dimensional Geometry",
+          "Probability"
+        ]
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const subjectTabs = document.querySelectorAll(".subject-tab");
+      const classSelect = document.getElementById("classSelect");
+      const chapterSelect = document.getElementById("chapterSelect");
+      const lectureInput = document.getElementById("lectureInput");
+      const questionInput = document.getElementById("questionInput");
+      const addressInput = document.getElementById("addressInput");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const savedAreas = {
+        Physics: document.getElementById("savedPhysics"),
+        Chemistry: document.getElementById("savedChemistry"),
+        Maths: document.getElementById("savedMaths"),
+      };
+
+      let currentSubject = "Physics";
+
+      // Saved questions separated by subject
+      let savedQuestions = {
+        Physics: [],
+        Chemistry: [],
+        Maths: []
+      };
+
+      // Populate chapter dropdown
+      function populateChapters() {
+        const cls = classSelect.value;
+        const chaps = chapters[currentSubject][cls] || [];
+        chapterSelect.innerHTML = "";
+        chaps.forEach(ch => {
+          const opt = document.createElement("option");
+          opt.value = ch;
+          opt.textContent = ch;
+          chapterSelect.appendChild(opt);
+        });
+      }
+
+      // Save questions in localStorage separated by subject
+      function saveQuestion(e) {
+        e.preventDefault();
+
+        const lectureNo = lectureInput.value.trim();
+        const questionNo = questionInput.value.trim();
+        const chapter = chapterSelect.value.trim();
+        const address = addressInput.value.trim();
+
+        if (!lectureNo || !questionNo || !chapter || !address) {
+          alert("Please fill all fields before saving.");
+          return;
+        }
+
+        const questionObj = {
+          class: classSelect.value,
+          chapter,
+          lecture: lectureNo,
+          question: questionNo,
+          address,
+          timestamp: new Date().toISOString()
+        };
+
+        savedQuestions[currentSubject].push(questionObj);
+        localStorage.setItem("jeeQuestionsBySubject", JSON.stringify(savedQuestions));
+
+        // Clear inputs except class & chapter for convenience
+        lectureInput.value = "";
+        questionInput.value = "";
+        addressInput.value = "";
+
+        renderSavedQuestions();
+
+        alert(`Saved question under ${currentSubject}`);
+      }
+
+      // Load questions from localStorage
+      function loadFromStorage() {
+        const data = localStorage.getItem("jeeQuestionsBySubject");
+        if (data) {
+          savedQuestions = JSON.parse(data);
+        }
+      }
+
+      // Render saved questions in their respective sections
+      function renderSavedQuestions() {
+        for (const subject in savedAreas) {
+          const container = savedAreas[subject];
+          container.innerHTML = "";
+          const questions = savedQuestions[subject];
+          if (!questions || questions.length === 0) {
+            container.innerHTML = "<p><em>No questions saved yet.</em></p>";
+            continue;
+          }
+
+          questions.forEach((q, idx) => {
+            const div = document.createElement("div");
+            div.className = "saved-question";
+
+            div.innerHTML = `
+            <div>
+              <strong>Class ${q.class}</strong> | <em>${q.chapter}</em><br>
+              Lecture ${q.lecture} | Question ${q.question}<br>
+              <small>${q.address}</small>
+            </div>
+            <button class="delete-btn" aria-label="Delete question ${idx + 1} from ${subject}">Delete</button>
+          `;
+
+            // Delete button handler
+            div.querySelector("button.delete-btn").addEventListener("click", () => {
+              savedQuestions[subject].splice(idx, 1);
+              localStorage.setItem("jeeQuestionsBySubject", JSON.stringify(savedQuestions));
+              renderSavedQuestions();
+            });
+
+            container.appendChild(div);
+          });
+        }
+      }
+
+      // Switch tab (subject)
+      function switchTab(e) {
+        const clicked = e.target;
+        if (!clicked.classList.contains("subject-tab")) return;
+
+        subjectTabs.forEach(tab => {
+          tab.setAttribute("aria-selected", "false");
+          tab.setAttribute("tabindex", "-1");
+        });
+
+        clicked.setAttribute("aria-selected", "true");
+        clicked.setAttribute("tabindex", "0");
+        clicked.focus();
+
+        currentSubject = clicked.dataset.subject;
+        populateChapters();
+      }
+
+      // Export to Excel with separate sheets per subject
+      function exportToExcel() {
+        const wb = XLSX.utils.book_new();
+
+        for (const subject in savedQuestions) {
+          const questions = savedQuestions[subject];
+          if (questions.length === 0) continue;
+
+          // Map questions to worksheet data array with headers
+          const wsData = [
+            ["Class", "Chapter", "Lecture No.", "Question No.", "Full Question Address/Note", "Saved On"]
+          ];
+
+          questions.forEach(q => {
+            wsData.push([
+              q.class,
+              q.chapter,
+              q.lecture,
+              q.question,
+              q.address,
+              new Date(q.timestamp).toLocaleString()
+            ]);
+          });
+
+          const ws = XLSX.utils.aoa_to_sheet(wsData);
+          XLSX.utils.book_append_sheet(wb, ws, subject);
+        }
+
+        if (wb.SheetNames.length === 0) {
+          alert("No questions saved to export.");
+          return;
+        }
+
+        XLSX.writeFile(wb, "JEE_Questions_Tracker.xlsx");
+      }
+
+      // Event listeners
+      subjectTabs.forEach(tab => {
+        tab.addEventListener("click", switchTab);
+        tab.addEventListener("keydown", e => {
+          // Support keyboard navigation (left/right arrows)
+          let index = Array.from(subjectTabs).indexOf(document.activeElement);
+          if (e.key === "ArrowRight") {
+            index = (index + 1) % subjectTabs.length;
+            subjectTabs[index].focus();
+          } else if (e.key === "ArrowLeft") {
+            index = (index - 1 + subjectTabs.length) % subjectTabs.length;
+            subjectTabs[index].focus();
+          } else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            subjectTabs[index].click();
+          }
+        });
+      });
+
+      classSelect.addEventListener("change", populateChapters);
+      document.getElementById("questionForm").addEventListener("submit", saveQuestion);
+      downloadBtn.addEventListener("click", exportToExcel);
+
+      // Init
+      loadFromStorage();
+      populateChapters();
+      renderSavedQuestions();
+    });
+  </script>
+
+</body>
+
+</html>
